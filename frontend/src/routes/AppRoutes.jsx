@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import LoginPage from '../features/auth/pages/LoginPage';
 import MesasPage from '../features/mesas/pages/MesasPage';
+import MainLayout from '../components/layout/MainLayout/MainLayout';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -30,16 +31,18 @@ const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route 
-          path="/login" 
-          element={user ? <Navigate to="/mesas" /> : <LoginPage />} 
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/mesas" /> : <LoginPage />}
         />
-        
+
         <Route
           path="/mesas"
           element={
             <PrivateRoute>
-              <MesasPage />
+              <MainLayout>
+                <MesasPage />
+              </MainLayout>
             </PrivateRoute>
           }
         />

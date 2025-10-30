@@ -1,0 +1,22 @@
+.main-layout {
+    min-height: 100vh;
+    background: var(--bg-body);
+}
+
+/* Área de conteúdo principal */
+.main-content {
+    padding: var(--spacing-md);
+    margin-top: 60px;
+    /* Altura da navbar */
+    min-height: calc(100vh - 60px);
+    transition: margin-left 0.3s ease;
+}
+
+/* Responsivo: Desktop */
+@media (min-width: 769px) {
+    .main-content {
+        margin-left: 240px;
+        /* Largura da sidebar */
+        padding: var(--spacing-xl);
+    }
+}

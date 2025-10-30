@@ -1,0 +1,151 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--white);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-md);
+    z-index: 997;
+    gap: var(--spacing-md);
+}
+
+/* Botão do menu hambúrguer (mobile) */
+.navbar-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.navbar-menu-btn:hover {
+    background: var(--primary-dark);
+}
+
+/* Título */
+.navbar-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.navbar-title h1 {
+    font-size: var(--font-size-lg);
+    color: var(--primary-color);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ações da navbar */
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+}
+
+/* Usuário */
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.navbar-username {
+    display: none;
+    /* Escondido no mobile */
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.navbar-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-base);
+    font-weight: bold;
+    color: var(--white);
+    border: 2px solid var(--primary-light);
+}
+
+.navbar-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Botão de logout */
+.navbar-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--danger);
+    color: var(--white);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.navbar-logout:hover {
+    background: #c82333;
+    transform: scale(1.05);
+}
+
+/* Responsivo: Tablet */
+@media (min-width: 480px) {
+    .navbar-title h1 {
+        font-size: var(--font-size-xl);
+    }
+}
+
+/* Responsivo: Desktop */
+@media (min-width: 769px) {
+    .navbar {
+        left: 220px;
+        /* Compensar largura da sidebar */
+    }
+
+    .navbar-menu-btn {
+        display: none;
+        /* Esconder hambúrguer no desktop */
+    }
+
+    .navbar-username {
+        display: block;
+        /* Mostrar nome no desktop */
+    }
+
+    .navbar-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .navbar-logout {
+        width: 40px;
+        height: 40px;
+    }
+}

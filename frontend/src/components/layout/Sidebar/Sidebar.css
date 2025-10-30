@@ -1,0 +1,203 @@
+/* Overlay escuro no mobile quando sidebar está aberta */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Sidebar principal */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    /* Escondida por padrão no mobile */
+    width: 240px;
+    height: 100vh;
+    background: var(--white);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    z-index: 999;
+    transition: left 0.3s ease;
+}
+
+/* Sidebar aberta no mobile */
+.sidebar-open {
+    left: 0;
+}
+
+/* Mostrar overlay no mobile quando sidebar aberta */
+.sidebar-open~.sidebar-overlay,
+.sidebar-overlay {
+    display: block;
+}
+
+/* Header da sidebar */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-bottom: 2px solid var(--border-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    height: 3.9rem;
+}
+
+.sidebar-logo {
+    color: var(--white);
+    font-size: var(--font-size-xl);
+    font-weight: bold;
+    margin: 0;
+}
+
+.sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: var(--border-radius);
+    color: var(--white);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.sidebar-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Navegação */
+.sidebar-nav {
+    flex: 1;
+    padding: var(--spacing-md);
+    overflow-y: auto;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 500;
+}
+
+.sidebar-item:hover {
+    background: var(--gray-100);
+    transform: translateX(5px);
+}
+
+.sidebar-item.active {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.sidebar-icon {
+    font-size: var(--font-size-xl);
+    min-width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-text {
+    font-size: var(--font-size-base);
+}
+
+/* Footer da sidebar */
+.sidebar-footer {
+    padding: var(--spacing-lg);
+    border-top: 2px solid var(--border-color);
+    background: var(--gray-100);
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.sidebar-user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+    color: var(--white);
+    flex-shrink: 0;
+}
+
+.sidebar-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sidebar-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-user-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    font-size: var(--font-size-base);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-role {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsivo: Tablet e Desktop */
+@media (min-width: 769px) {
+    .sidebar-overlay {
+        display: none !important;
+    }
+
+    .sidebar {
+        left: 0;
+        /* Sempre visível no desktop */
+    }
+
+    .sidebar-close {
+        display: none;
+        /* Esconder botão X no desktop */
+    }
+}
