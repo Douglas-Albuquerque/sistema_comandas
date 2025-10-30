@@ -67,10 +67,28 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
+}
+
+.btn-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.btn-loading .spinner-container {
+  gap: 0;
+}
+
+.btn-loading .spinner-circle {
+  border-color: var(--white);
 }

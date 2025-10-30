@@ -1,83 +1,96 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Models;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class LoginController extends Controller
+class User extends Authenticatable
 {
-    /**
-     * Login do usuário
-     */
-    public function login(Request $request)
+    use HasApiTokens, HasFactory, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'username',
+        'email',
+        'password',
+        'role_id',
+        'avatar',
+        'is_active',           // ← NOVO
+        'inactive_until',      // ← NOVO
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_active' => 'boolean',        // ← NOVO
+        'inactive_until' => 'datetime',  // ← NOVO
+    ];
+
+    // Relacionamento: User pertence a uma role
+    public function role()
     {
-        $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ]);
+        return $this->belongsTo(Role::class);
+    }
 
-        // Buscar usuário por username
-        $user = User::where('username', $request->username)->first();
+    // Relacionamento: User tem muitas comandas como garçom
+    public function comandas()
+    {
+        return $this->hasMany(Comanda::class, 'garcom_id');
+    }
 
-        // Verificar se existe e se a senha está correta
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Credenciais inválidas'
-            ], 401);
+    // Relacionamento: User tem muitos caixas
+    public function caixas()
+    {
+        return $this->hasMany(Caixa::class);
+    }
+
+    // Verificar se tem permissão
+    public function hasPermission($permission)
+    {
+        if (!$this->role) return false;
+
+        $permissions = $this->role->permissions ?? [];
+        return in_array($permission, $permissions);
+    }
+
+    // Verificar se é admin
+    public function isAdmin()
+    {
+        return $this->role && $this->role->slug === 'admin';
+    }
+
+    // Verificar se é caixa
+    public function isCaixa()
+    {
+        return $this->role && $this->role->slug === 'caixa';
+    }
+
+    // Verificar se é garçom
+    public function isGarcom()
+    {
+        return $this->role && $this->role->slug === 'garcom';
+    }
+
+    // ← NOVO: Verificar se o usuário está ativo
+    public function isActiveNow()
+    {
+        if (!$this->is_active) {
+            return false;
         }
 
-        // Criar token de autenticação
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Se tem data de inativação temporária e já passou
+        if ($this->inactive_until && now()->lt($this->inactive_until)) {
+            return false;
+        }
 
-        // Carregar a role com permissões
-        $user->load('role');
-
-        return response()->json([
-            'message' => 'Login realizado com sucesso',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'avatar' => $user->avatar,
-                'role' => $user->role,
-            ],
-            'token' => $token,
-        ], 200);
-    }
-
-    /**
-     * Logout do usuário
-     */
-    public function logout(Request $request)
-    {
-        // Deletar o token atual
-        $request->user()->currentAccessToken()->delete();
-
-        return response()->json([
-            'message' => 'Logout realizado com sucesso'
-        ], 200);
-    }
-
-    /**
-     * Pegar usuário autenticado
-     */
-    public function me(Request $request)
-    {
-        $user = $request->user();
-        $user->load('role');
-
-        return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'avatar' => $user->avatar,
-                'role' => $user->role,
-            ]
-        ], 200);
+        return true;
     }
 }

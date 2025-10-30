@@ -18,6 +18,8 @@ class User extends Authenticatable
         'password',
         'role_id',
         'avatar',
+        'is_active',           // ← NOVO
+        'inactive_until',      // ← NOVO
     ];
 
     protected $hidden = [
@@ -28,6 +30,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_active' => 'boolean',        
+        'inactive_until' => 'datetime',  
     ];
 
     // Relacionamento: User pertence a uma role
@@ -52,7 +56,7 @@ class User extends Authenticatable
     public function hasPermission($permission)
     {
         if (!$this->role) return false;
-        
+
         $permissions = $this->role->permissions ?? [];
         return in_array($permission, $permissions);
     }
@@ -73,5 +77,20 @@ class User extends Authenticatable
     public function isGarcom()
     {
         return $this->role && $this->role->slug === 'garcom';
+    }
+
+    // ← NOVO: Verificar se o usuário está ativo
+    public function isActiveNow()
+    {
+        if (!$this->is_active) {
+            return false;
+        }
+
+        // Se tem data de inativação temporária e já passou
+        if ($this->inactive_until && now()->lt($this->inactive_until)) {
+            return false;
+        }
+
+        return true;
     }
 }

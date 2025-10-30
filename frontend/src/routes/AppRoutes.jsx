@@ -1,25 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import Spinner from '../components/common/Spinner/Spinner';
 import LoginPage from '../features/auth/pages/LoginPage';
 import MesasPage from '../features/mesas/pages/MesasPage';
+import UsersPage from '../features/users/pages/UsersPage';
 import MainLayout from '../components/layout/MainLayout/MainLayout';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        fontSize: '1.5rem',
-        color: 'var(--primary-color)'
-      }}>
-        Carregando...
-      </div>
-    );
+    return <Spinner size="large" text="Carregando..." fullScreen />;
   }
 
   return user ? children : <Navigate to="/login" />;
@@ -42,6 +33,17 @@ const AppRoutes = () => {
             <PrivateRoute>
               <MainLayout>
                 <MesasPage />
+              </MainLayout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/usuarios"
+          element={
+            <PrivateRoute>
+              <MainLayout>
+                <UsersPage />
               </MainLayout>
             </PrivateRoute>
           }

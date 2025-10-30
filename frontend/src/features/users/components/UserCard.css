@@ -1,0 +1,161 @@
+.user-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    height: 100%;
+}
+
+.user-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+}
+
+.user-card-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--white);
+    border: 3px solid var(--primary-light);
+    flex-shrink: 0;
+}
+
+.user-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-card-role-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.user-card-role-badge[data-role="admin"] {
+    background: #d4edda;
+    color: #155724;
+}
+
+.user-card-role-badge[data-role="caixa"] {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.user-card-role-badge[data-role="garcom"] {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.user-card-body {
+    flex: 1;
+}
+
+.user-card-name {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.user-card-username {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.user-card-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.user-card-btn {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+.btn-edit {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-edit:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.btn-delete:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .user-card-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+
+    .user-card-name {
+        font-size: var(--font-size-base);
+    }
+
+    .user-card-username {
+        font-size: var(--font-size-sm);
+    }
+}
+
+.user-card-badges {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    align-items: flex-end;
+}
+
+.user-card-status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.user-card-status-badge.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.user-card-status-badge.inactive-temp {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.user-card-status-badge.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}

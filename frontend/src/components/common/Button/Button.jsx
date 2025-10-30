@@ -1,14 +1,15 @@
+import Spinner from '../Spinner/Spinner';
 import './Button.css';
 
-const Button = ({ 
-  children, 
-  variant = 'primary', 
+const Button = ({
+  children,
+  variant = 'primary',
   type = 'button',
   loading = false,
   disabled = false,
   fullWidth = false,
   onClick,
-  ...props 
+  ...props
 }) => {
   return (
     <button
@@ -19,7 +20,9 @@ const Button = ({
       {...props}
     >
       {loading ? (
-        <span className="btn-loader">Carregando...</span>
+        <span className="btn-loading">
+          <Spinner size="small" />
+        </span>
       ) : (
         children
       )}

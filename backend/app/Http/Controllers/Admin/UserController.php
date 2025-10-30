@@ -34,6 +34,8 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             'role_id' => 'required|exists:roles,id',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_active' => 'sometimes|boolean',           // ← NOVO
+            'inactive_until' => 'sometimes|nullable|date', // ← NOVO
         ]);
 
         $data = [
@@ -41,6 +43,8 @@ class UserController extends Controller
             'username' => $request->username,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
+            'is_active' => $request->get('is_active', true),                    // ← NOVO
+            'inactive_until' => $request->get('inactive_until', null),         // ← NOVO
         ];
 
         // Upload avatar se fornecido
@@ -83,6 +87,8 @@ class UserController extends Controller
             'password' => 'sometimes|string|min:6',
             'role_id' => 'sometimes|exists:roles,id',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_active' => 'sometimes|boolean',           // ← NOVO
+            'inactive_until' => 'sometimes|nullable|date', // ← NOVO
         ]);
 
         // Atualizar dados básicos
@@ -102,9 +108,18 @@ class UserController extends Controller
             $user->role_id = $request->role_id;
         }
 
+        // ← NOVO
+        if ($request->has('is_active')) {
+            $user->is_active = $request->is_active;
+        }
+
+        // ← NOVO
+        if ($request->has('inactive_until')) {
+            $user->inactive_until = $request->inactive_until;
+        }
+
         // Upload avatar se fornecido
         if ($request->hasFile('avatar')) {
-            // Deletar avatar antigo
             if ($user->avatar) {
                 Storage::disk('public')->delete($user->avatar);
             }
@@ -120,6 +135,7 @@ class UserController extends Controller
             'user' => $user
         ], 200);
     }
+
 
     /**
      * Deletar usuário
