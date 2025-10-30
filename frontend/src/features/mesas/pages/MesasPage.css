@@ -1,0 +1,136 @@
+.mesas-page-temp {
+  min-height: 100vh;
+  background: var(--bg-body);
+  padding: var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mesas-temp-container {
+  width: 100%;
+  max-width: 600px;
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xxl);
+  box-shadow: var(--shadow-lg);
+}
+
+.mesas-temp-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.mesas-temp-header h1 {
+  color: var(--primary-color);
+  font-size: var(--font-size-xxl);
+  margin-bottom: var(--spacing-sm);
+}
+
+.mesas-temp-header p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-xl);
+  color: var(--white);
+}
+
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.user-details h2 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-xs);
+}
+
+.user-username {
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+  margin-bottom: var(--spacing-xs);
+}
+
+.user-role {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.mesas-temp-actions {
+  margin-bottom: var(--spacing-xl);
+}
+
+.mesas-temp-info {
+  background: var(--bg-body);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+}
+
+.mesas-temp-info h3 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-lg);
+}
+
+.info-card {
+  background: var(--white);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.info-card p {
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.info-card strong {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.info-card ul {
+  list-style: none;
+  padding-left: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.info-card ul li {
+  padding: var(--spacing-xs) 0;
+  color: var(--success);
+  font-weight: 500;
+}
