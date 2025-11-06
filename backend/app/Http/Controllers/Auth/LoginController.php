@@ -1,96 +1,109 @@
 <?php
 
-namespace App\Models;
+namespace App\Http\Controllers\Auth;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
-class User extends Authenticatable
+class LoginController extends Controller
 {
-    use HasApiTokens, HasFactory, Notifiable;
-
-    protected $fillable = [
-        'name',
-        'username',
-        'email',
-        'password',
-        'role_id',
-        'avatar',
-        'is_active',           // ← NOVO
-        'inactive_until',      // ← NOVO
-    ];
-
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'is_active' => 'boolean',        // ← NOVO
-        'inactive_until' => 'datetime',  // ← NOVO
-    ];
-
-    // Relacionamento: User pertence a uma role
-    public function role()
+    /**
+     * Login do usuário
+     */
+    public function login(Request $request)
     {
-        return $this->belongsTo(Role::class);
-    }
+        try {
+            $request->validate([
+                'username' => 'required|string',
+                'password' => 'required|string',
+            ]);
 
-    // Relacionamento: User tem muitas comandas como garçom
-    public function comandas()
-    {
-        return $this->hasMany(Comanda::class, 'garcom_id');
-    }
+            // Buscar usuário por username
+            $user = User::where('username', $request->username)->first();
 
-    // Relacionamento: User tem muitos caixas
-    public function caixas()
-    {
-        return $this->hasMany(Caixa::class);
-    }
+            // Verificar se existe e se a senha está correta
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'message' => 'Credenciais inválidas'
+                ], 401);
+            }
 
-    // Verificar se tem permissão
-    public function hasPermission($permission)
-    {
-        if (!$this->role) return false;
+            // Verificar se o usuário está ativo
+            if (method_exists($user, 'isActiveNow') && !$user->isActiveNow()) {
+                $message = 'Sua conta está inativa.';
+                
+                if ($user->inactive_until) {
+                    $message .= ' Acesso bloqueado até ' . $user->inactive_until->format('d/m/Y');
+                } else {
+                    $message .= ' Entre em contato com o administrador.';
+                }
+                
+                return response()->json([
+                    'message' => $message
+                ], 403);
+            }
 
-        $permissions = $this->role->permissions ?? [];
-        return in_array($permission, $permissions);
-    }
+            // Criar token de autenticação
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-    // Verificar se é admin
-    public function isAdmin()
-    {
-        return $this->role && $this->role->slug === 'admin';
-    }
+            // Carregar a role com permissões
+            $user->load('role');
 
-    // Verificar se é caixa
-    public function isCaixa()
-    {
-        return $this->role && $this->role->slug === 'caixa';
-    }
+            return response()->json([
+                'message' => 'Login realizado com sucesso',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    //'avatar' => $user->avatar,
+                    'role' => $user->role,
+                    'is_active' => $user->is_active ?? true,
+                    'inactive_until' => $user->inactive_until ?? null,
+                ],
+                'token' => $token,
+            ], 200);
 
-    // Verificar se é garçom
-    public function isGarcom()
-    {
-        return $this->role && $this->role->slug === 'garcom';
-    }
-
-    // ← NOVO: Verificar se o usuário está ativo
-    public function isActiveNow()
-    {
-        if (!$this->is_active) {
-            return false;
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro no servidor',
+                'error' => $e->getMessage()
+            ], 500);
         }
+    }
 
-        // Se tem data de inativação temporária e já passou
-        if ($this->inactive_until && now()->lt($this->inactive_until)) {
-            return false;
-        }
+    /**
+     * Logout do usuário
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
 
-        return true;
+        return response()->json([
+            'message' => 'Logout realizado com sucesso'
+        ], 200);
+    }
+
+    /**
+     * Pegar usuário autenticado
+     */
+    public function me(Request $request)
+    {
+        $user = $request->user();
+        $user->load('role');
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                //'avatar' => $user->avatar,
+                'role' => $user->role,
+                'is_active' => $user->is_active ?? true,
+                'inactive_until' => $user->inactive_until ?? null,
+            ]
+        ], 200);
     }
 }

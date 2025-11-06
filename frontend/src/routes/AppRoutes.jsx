@@ -4,6 +4,7 @@ import Spinner from '../components/common/Spinner/Spinner';
 import LoginPage from '../features/auth/pages/LoginPage';
 import MesasPage from '../features/mesas/pages/MesasPage';
 import UsersPage from '../features/users/pages/UsersPage';
+import ProfilePage from '../features/profile/pages/ProfilePage';
 import MainLayout from '../components/layout/MainLayout/MainLayout';
 
 const PrivateRoute = ({ children }) => {
@@ -44,6 +45,17 @@ const AppRoutes = () => {
             <PrivateRoute>
               <MainLayout>
                 <UsersPage />
+              </MainLayout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/perfil"
+          element={
+            <PrivateRoute>
+              <MainLayout>
+                <ProfilePage />
               </MainLayout>
             </PrivateRoute>
           }

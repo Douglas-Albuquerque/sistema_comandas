@@ -25,13 +25,10 @@ const UserCard = ({ user, onEdit, onDelete }) => {
         <Card className="user-card">
             <div className="user-card-header">
                 <div className="user-card-avatar">
-                    {user.avatar ? (
-                        <img src={user.avatar} alt={user.name} />
-                    ) : (
-                        <span className="avatar-placeholder">
-                            {user.name.charAt(0).toUpperCase()}
-                        </span>
-                    )}
+                    {/* SEMPRE mostrar só a inicial */}
+                    <span className="avatar-placeholder">
+                        {user.name.charAt(0).toUpperCase()}
+                    </span>
                 </div>
                 <div className="user-card-badges">
                     <div className="user-card-role-badge" data-role={user.role?.slug}>

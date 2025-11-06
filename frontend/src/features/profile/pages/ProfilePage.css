@@ -1,0 +1,117 @@
+.profile-page {
+    width: 100%;
+}
+
+.page-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.page-header h1 {
+    font-size: var(--font-size-xxl);
+    color: var(--primary-color);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.page-header p {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.profile-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: var(--spacing-xl);
+}
+
+.profile-main {
+    min-width: 0;
+}
+
+.profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.sidebar-title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.sidebar-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.permissions-card {
+    margin-top: 0;
+}
+
+.permissions-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.permission-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: var(--gray-100);
+    border-radius: var(--border-radius);
+}
+
+.permission-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--primary-color);
+    color: var(--white);
+    border-radius: 50%;
+    font-size: var(--font-size-sm);
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.permission-name {
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.no-permissions {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-md);
+    margin: 0;
+}
+
+/* Responsivo */
+@media (max-width: 1024px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-sidebar {
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: var(--font-size-xl);
+    }
+
+    .profile-layout {
+        gap: var(--spacing-lg);
+    }
+}

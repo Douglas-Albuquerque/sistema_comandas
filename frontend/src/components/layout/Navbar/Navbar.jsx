@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import { IoLogOutOutline } from 'react-icons/io5';
 import './Navbar.css';
 
 const Navbar = ({ onMenuClick }) => {
@@ -25,16 +26,12 @@ const Navbar = ({ onMenuClick }) => {
                 <div className="navbar-user">
                     <span className="navbar-username">{user?.name}</span>
                     <div className="navbar-avatar">
-                        {user?.avatar ? (
-                            <img src={user.avatar} alt={user.name} />
-                        ) : (
-                            <span>{user?.name?.charAt(0).toUpperCase()}</span>
-                        )}
+                        <span>{user?.name?.charAt(0).toUpperCase()}</span>
                     </div>
                 </div>
 
                 <button className="navbar-logout" onClick={handleLogout} title="Sair">
-                    🚪
+                    <IoLogOutOutline size={30} />
                 </button>
             </div>
         </nav>

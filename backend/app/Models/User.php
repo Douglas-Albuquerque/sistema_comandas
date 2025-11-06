@@ -17,7 +17,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
-        'avatar',
+        //'avatar',
         'is_active',           // ← NOVO
         'inactive_until',      // ← NOVO
     ];

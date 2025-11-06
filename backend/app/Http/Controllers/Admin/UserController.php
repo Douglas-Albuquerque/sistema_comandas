@@ -33,7 +33,7 @@ class UserController extends Controller
             'username' => 'required|string|unique:users,username|max:255',
             'password' => 'required|string|min:6',
             'role_id' => 'required|exists:roles,id',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            //'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'sometimes|boolean',           // ← NOVO
             'inactive_until' => 'sometimes|nullable|date', // ← NOVO
         ]);
@@ -48,10 +48,10 @@ class UserController extends Controller
         ];
 
         // Upload avatar se fornecido
-        if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $data['avatar'] = $path;
-        }
+        // if ($request->hasFile('avatar')) {
+        //     $path = $request->file('avatar')->store('avatars', 'public');
+        //     $data['avatar'] = $path;
+        // }
 
         $user = User::create($data);
         $user->load('role');
@@ -86,7 +86,7 @@ class UserController extends Controller
             'username' => 'sometimes|string|unique:users,username,' . $id . '|max:255',
             'password' => 'sometimes|string|min:6',
             'role_id' => 'sometimes|exists:roles,id',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            //'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'sometimes|boolean',           // ← NOVO
             'inactive_until' => 'sometimes|nullable|date', // ← NOVO
         ]);
@@ -119,13 +119,13 @@ class UserController extends Controller
         }
 
         // Upload avatar se fornecido
-        if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
-                Storage::disk('public')->delete($user->avatar);
-            }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $path;
-        }
+        // if ($request->hasFile('avatar')) {
+        //     if ($user->avatar) {
+        //         Storage::disk('public')->delete($user->avatar);
+        //     }
+        //     $path = $request->file('avatar')->store('avatars', 'public');
+        //     $user->avatar = $path;
+        // }
 
         $user->save();
         $user->load('role');
