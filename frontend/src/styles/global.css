@@ -13,6 +13,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 code {
@@ -138,3 +139,120 @@ select {
 .gap-1 { gap: var(--spacing-sm); }
 .gap-2 { gap: var(--spacing-md); }
 .gap-3 { gap: var(--spacing-lg); }
+
+/* ========================================
+   RESET E BASE
+======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Remove scroll horizontal */
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--gray-100);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Root */
+#root {
+  width: 100%;
+  min-height: 100vh; /* Altura mínima da viewport */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   CONTAINERS PRINCIPAIS
+======================================== */
+.main-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden; /* Evita scroll no layout principal */
+}
+
+.main-content {
+  flex: 1;
+  padding: var(--spacing-xl);
+  overflow-y: auto; /* Scroll apenas no conteúdo */
+  max-height: calc(100vh - 70px); /* Altura máxima (viewport - navbar) */
+  background: var(--gray-100);
+}
+
+/* ========================================
+   SCROLL CUSTOMIZADO
+======================================== */
+/* Para navegadores Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-200);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* Para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) var(--gray-200);
+}
+
+/* ========================================
+   REMOVER SCROLL DE ELEMENTOS
+======================================== */
+/* Prevenir scroll indesejado */
+img, svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Links e botões não devem causar scroll */
+a, button {
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ========================================
+   RESPONSIVO
+======================================== */
+@media (max-width: 768px) {
+  .main-content {
+    padding: var(--spacing-lg);
+    max-height: calc(100vh - 60px); /* Ajusta para navbar mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: var(--spacing-md);
+  }
+}
+
+

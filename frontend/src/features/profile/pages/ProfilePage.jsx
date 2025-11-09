@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useProfile } from '../../../hooks/useProfile';
+import { useToast } from '../../../hooks/useToast';
 import Card from '../../../components/common/Card/Card';
 import Modal from '../../../components/common/Modal/Modal';
 import Button from '../../../components/common/Button/Button';
@@ -19,6 +20,7 @@ const ProfilePage = () => {
         //uploadAvatar,
         //deleteAvatar,
     } = useProfile();
+    const { showSuccess, showError } = useToast();
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -31,9 +33,9 @@ const ProfilePage = () => {
 
         if (result.success) {
             setIsEditModalOpen(false);
-            alert('Perfil atualizado com sucesso!');
+            showSuccess('Perfil atualizado com sucesso!');
         } else {
-            alert(result.message);
+            showError(result.message);
         }
     };
 
@@ -44,27 +46,27 @@ const ProfilePage = () => {
 
         if (result.success) {
             setIsPasswordModalOpen(false);
-            alert('Senha alterada com sucesso!');
+            showSuccess('Senha alterada com sucesso!');
         } else {
-            alert(result.message);
+            showError(result.message);
         }
     };
 
     // const handleAvatarChange = async (file) => {
     //     const result = await uploadAvatar(file);
     //     if (result.success) {
-    //         alert('Avatar atualizado com sucesso!');
+    //         showSuccess('Avatar atualizado com sucesso!');
     //     } else {
-    //         alert(result.message);
+    //         showError(result.message);
     //     }
     // };
 
     // const handleDeleteAvatar = async () => {
     //     const result = await deleteAvatar();
     //     if (result.success) {
-    //         alert('Avatar removido com sucesso!');
+    //         showSuccess('Avatar removido com sucesso!');
     //     } else {
-    //         alert(result.message);
+    //         showError(result.message);
     //     }
     // };
 
@@ -87,9 +89,9 @@ const ProfilePage = () => {
                 <div className="profile-main">
                     <ProfileCard
                         profile={profile}
-                        //onAvatarChange={handleAvatarChange}
-                        //onDeleteAvatar={handleDeleteAvatar}
-                        //loading={loading}
+                    //onAvatarChange={handleAvatarChange}
+                    //onDeleteAvatar={handleDeleteAvatar}
+                    //loading={loading}
                     />
                 </div>
 

@@ -1,4 +1,5 @@
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import AppRoutes from './routes/AppRoutes';
 import './styles/variables.css';
 import './styles/global.css';
@@ -6,7 +7,9 @@ import './styles/global.css';
 function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <ToastProvider>
+        <AppRoutes />
+      </ToastProvider>
     </AuthProvider>
   );
 }

@@ -51,7 +51,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     );
 
     const handleLinkClick = () => {
-        // Fecha o menu no mobile após clicar
         if (window.innerWidth <= 768) {
             onClose();
         }
@@ -59,12 +58,17 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     return (
         <>
-            {/* Overlay para mobile */}
             {isOpen && <div className="sidebar-overlay" onClick={onClose}></div>}
 
             <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
                 <div className="sidebar-header">
-                    <h2 className="sidebar-logo">Sistema Comandas</h2>
+                    <Link to="/mesas" className="sidebar-logo-link" onClick={handleLinkClick}>
+                        <img
+                            src="/logo.png"
+                            alt="Logo"
+                            className="sidebar-logo"
+                        />
+                    </Link>
                     <button className="sidebar-close" onClick={onClose}>
                         ✕
                     </button>
@@ -84,21 +88,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                     ))}
                 </nav>
 
-                {/* <div className="sidebar-footer">
-                    <div className="sidebar-user">
-                        <div className="sidebar-user-avatar">
-                            {user?.avatar ? (
-                                <img src={user.avatar} alt={user.name} />
-                            ) : (
-                                <span>{user?.name?.charAt(0).toUpperCase()}</span>
-                            )}
-                        </div>
-                        <div className="sidebar-user-info">
-                            <p className="sidebar-user-name">{user?.name}</p>
-                            <p className="sidebar-user-role">{user?.role?.name}</p>
-                        </div>
-                    </div>
-                </div> */}
             </aside>
         </>
     );

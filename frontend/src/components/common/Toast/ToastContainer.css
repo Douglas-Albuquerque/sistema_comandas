@@ -1,0 +1,23 @@
+.toast-container {
+    position: fixed;
+    top: 80px;
+    /* Abaixo da navbar */
+    right: var(--spacing-lg);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    pointer-events: none;
+}
+
+.toast-container>* {
+    pointer-events: all;
+}
+
+@media (max-width: 768px) {
+    .toast-container {
+        top: 70px;
+        right: var(--spacing-md);
+        left: var(--spacing-md);
+    }
+}
