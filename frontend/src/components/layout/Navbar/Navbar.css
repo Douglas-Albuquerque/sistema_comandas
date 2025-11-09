@@ -12,6 +12,7 @@
     padding: 0 var(--spacing-md);
     z-index: 997;
     gap: var(--spacing-md);
+
 }
 
 /* Botão do menu hambúrguer (mobile) */
