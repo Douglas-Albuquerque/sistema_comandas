@@ -13,10 +13,10 @@
   margin: 0 0 var(--spacing-sm) 0;
 }
 
-.page-header p {
+.page-mensage {
   font-size: var(--font-size-base);
   color: var(--text-secondary);
-  margin: 0;
+  margin: -2rem 0 1rem 0;
 }
 
 .mesas-grid {
