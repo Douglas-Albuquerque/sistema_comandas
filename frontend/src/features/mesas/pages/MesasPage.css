@@ -33,6 +33,7 @@
   text-align: center;
   transition: var(--transition);
   cursor: pointer;
+  height: 9rem;
 }
 
 .mesa-card:hover {

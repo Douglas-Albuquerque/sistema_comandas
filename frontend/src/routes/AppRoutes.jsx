@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import Spinner from '../components/common/Spinner/Spinner';
 import LoginPage from '../features/auth/pages/LoginPage';
 import MesasPage from '../features/mesas/pages/MesasPage';
+import ComandaPage from '../features/mesas/pages/ComandaPage';
 import UsersPage from '../features/users/pages/UsersPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
 import MainLayout from '../components/layout/MainLayout/MainLayout';
@@ -40,6 +41,17 @@ const AppRoutes = () => {
         />
 
         <Route
+          path="/mesas/:mesaId/comanda"
+          element={
+            <PrivateRoute>
+              <MainLayout>
+                <ComandaPage />
+              </MainLayout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/usuarios"
           element={
             <PrivateRoute>
@@ -61,7 +73,7 @@ const AppRoutes = () => {
           }
         />
 
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="/" element={<Navigate to="/mesas" />} />
       </Routes>
     </BrowserRouter>
   );

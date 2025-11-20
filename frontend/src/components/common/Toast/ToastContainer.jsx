@@ -1,7 +1,12 @@
 import Toast from './Toast';
 import './ToastContainer.css';
 
-const ToastContainer = ({ toasts, removeToast }) => {
+const ToastContainer = ({ toasts = [], removeToast }) => {
+    // Validação para evitar o erro de undefined
+    if (!toasts || !Array.isArray(toasts)) {
+        return <div className="toast-container"></div>;
+    }
+
     return (
         <div className="toast-container">
             {toasts.map((toast) => (
