@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
+import { ToastContext } from '../../../context/ToastContext';
 import Spinner from '../../../components/common/Spinner/Spinner';
 import ModalBatata from '../components/ModalBatata';
 import ModalPastel from '../components/ModalPastel';
@@ -13,101 +14,117 @@ const ComandaPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { user } = useContext(AuthContext);
+    const { showSuccess, showError, showWarning } = useContext(ToastContext);
 
     const [comanda, setComanda] = useState(null);
     const [produtos, setProdutos] = useState([]);
-    const [categorias, setCategorias] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingProdutos, setLoadingProdutos] = useState(true);
     const [error, setError] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [produtoSelecionado, setProdutoSelecionado] = useState(null);
     const [tipoModal, setTipoModal] = useState(null);
+    const [itemParaRemover, setItemParaRemover] = useState(null);
+    const [adicionandoItem, setAdicionandoItem] = useState(false);
+    const [enviandoCozinha, setEnviandoCozinha] = useState(false);
 
     const mesa = location.state?.mesa;
     const token = localStorage.getItem('token');
 
-    // Buscar comanda e produtos
+    // Cache de produtos no sessionStorage
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [comandaRes, produtosRes] = await Promise.all([
-                    fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }),
-                    fetch('http://localhost:8000/api/produtos', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    })
-                ]);
-
-                if (!comandaRes.ok || !produtosRes.ok) {
-                    throw new Error('Erro ao carregar dados');
+                // Tentar carregar produtos do cache primeiro
+                const cachedProdutos = sessionStorage.getItem('produtos_cache');
+                if (cachedProdutos) {
+                    setProdutos(JSON.parse(cachedProdutos));
+                    setLoadingProdutos(false);
                 }
 
-                const comandaData = await comandaRes.json();
-                const produtosData = await produtosRes.json();
-
-                setComanda(comandaData.comanda);
-                setProdutos(produtosData.produtos);
-
-                // Agrupar produtos por categoria
-                const categoriaMap = {};
-                produtosData.produtos.forEach(produto => {
-                    if (!categoriaMap[produto.categoria.slug]) {
-                        categoriaMap[produto.categoria.slug] = {
-                            id: produto.categoria.id,
-                            nome: produto.categoria.nome,
-                            slug: produto.categoria.slug,
-                            produtos: []
-                        };
-                    }
-                    categoriaMap[produto.categoria.slug].produtos.push(produto);
+                // Carregar comanda e produtos em paralelo
+                const comandaPromise = fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                // Ordenar categorias conforme solicitado
-                const ordemCategorias = [
-                    'entradas',
-                    'sanduiches-arabe',
-                    'sanduiches-bola',
-                    'sanduiches-artesanal',
-                    'pasteis',
-                    'bebidas'
-                ];
+                const produtosPromise = fetch('http://localhost:8000/api/produtos', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
 
-                const categoriasOrdenadas = ordemCategorias
-                    .map(slug => categoriaMap[slug])
-                    .filter(cat => cat !== undefined);
+                // Carregar comanda primeiro para mostrar a página
+                const comandaRes = await comandaPromise;
+                if (!comandaRes.ok) throw new Error('Erro ao carregar comanda');
 
-                setCategorias(categoriasOrdenadas);
+                const comandaData = await comandaRes.json();
+                setComanda(comandaData.comanda);
+                setLoading(false); // Página já pode ser exibida
+
+                // Produtos carregam em background
+                const produtosRes = await produtosPromise;
+                if (!produtosRes.ok) throw new Error('Erro ao carregar produtos');
+
+                const produtosData = await produtosRes.json();
+                setProdutos(produtosData.produtos);
+                setLoadingProdutos(false);
+
+                // Cachear produtos para próximas visitas
+                sessionStorage.setItem('produtos_cache', JSON.stringify(produtosData.produtos));
+
             } catch (err) {
                 console.error('Erro ao carregar dados:', err);
                 setError('Erro ao carregar comanda ou produtos');
-            } finally {
+                showError('Erro ao carregar dados da comanda');
                 setLoading(false);
+                setLoadingProdutos(false);
             }
         };
 
         fetchData();
     }, [mesaId, token]);
 
-    // Determinar qual modal usar baseado na categoria
+    // Processar categorias com useMemo para evitar reprocessamento
+    const categorias = useMemo(() => {
+        if (produtos.length === 0) return [];
+
+        const categoriaMap = {};
+        produtos.forEach(produto => {
+            if (!categoriaMap[produto.categoria.slug]) {
+                categoriaMap[produto.categoria.slug] = {
+                    id: produto.categoria.id,
+                    nome: produto.categoria.nome,
+                    slug: produto.categoria.slug,
+                    produtos: []
+                };
+            }
+            categoriaMap[produto.categoria.slug].produtos.push(produto);
+        });
+
+        const ordemCategorias = [
+            'entradas',
+            'sanduiches-arabe',
+            'sanduiches-bola',
+            'sanduiches-artesanal',
+            'pasteis',
+            'bebidas'
+        ];
+
+        return ordemCategorias
+            .map(slug => categoriaMap[slug])
+            .filter(cat => cat !== undefined);
+    }, [produtos]);
+
     const getModalType = (slug) => {
         switch (slug) {
-            case 'entradas':
-                return 'batata';
-            case 'pasteis':
-                return 'pastel';
-            case 'bebidas':
-                return 'bebida';
+            case 'entradas': return 'batata';
+            case 'pasteis': return 'pastel';
+            case 'bebidas': return 'bebida';
             case 'sanduiches-arabe':
             case 'sanduiches-bola':
-            case 'sanduiches-artesanal':
-                return 'simples';
-            default:
-                return 'simples';
+            case 'sanduiches-artesanal': return 'simples';
+            default: return 'simples';
         }
     };
 
-    // Abrir modal ao clicar em um produto
     const handleProdutoClick = (produto) => {
         setProdutoSelecionado(produto);
         const tipo = getModalType(produto.categoria.slug);
@@ -115,8 +132,9 @@ const ComandaPage = () => {
         setModalOpen(true);
     };
 
-    // Adicionar item à comanda
     const handleAdicionarItem = async (dados) => {
+        setAdicionandoItem(true);
+
         try {
             const response = await fetch(
                 `http://localhost:8000/api/comandas/${comanda.id}/itens`,
@@ -137,30 +155,72 @@ const ComandaPage = () => {
 
             if (!response.ok) throw new Error('Erro ao adicionar item');
 
-            // Recarregar comanda
-            const comandaRes = await fetch(
-                `http://localhost:8000/api/mesas/${mesaId}/comanda`,
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            const comandaData = await comandaRes.json();
-            setComanda(comandaData.comanda);
+            const resultado = await response.json();
+
+            setComanda(prevComanda => {
+                const novoItem = resultado.item || {
+                    id: Date.now(),
+                    produto: produtoSelecionado,
+                    quantidade: dados.quantidade,
+                    observacoes: dados.observacoes,
+                    preco_unitario: dados.preco || parseFloat(produtoSelecionado.preco),
+                    subtotal: (dados.preco || parseFloat(produtoSelecionado.preco)) * dados.quantidade,
+                    status: 'pendente'
+                };
+
+                return {
+                    ...prevComanda,
+                    items: [...(prevComanda.items || []), novoItem],
+                    total: (parseFloat(prevComanda.total || 0) + parseFloat(novoItem.subtotal)).toFixed(2)
+                };
+            });
 
             setModalOpen(false);
             setProdutoSelecionado(null);
             setTipoModal(null);
+
+            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => setComanda(data.comanda))
+                .catch(err => console.error('Erro ao sincronizar:', err));
+
         } catch (err) {
             console.error('Erro:', err);
-            alert('Erro ao adicionar item');
+            showError('Erro ao adicionar item à comanda');
+        } finally {
+            setAdicionandoItem(false);
         }
     };
 
-    // Remover item da comanda
-    const handleRemoverItem = async (itemId) => {
-        if (!window.confirm('Deseja remover este item?')) return;
+    const handleRemoverItem = (itemId) => {
+        setItemParaRemover(itemId);
+    };
+
+    const confirmarRemocao = async () => {
+        if (!itemParaRemover) return;
 
         try {
+            const itemRemovido = comanda.items.find(item => item.id === itemParaRemover);
+
+            if (!itemRemovido) {
+                showError('Item não encontrado!');
+                setItemParaRemover(null);
+                return;
+            }
+
+            setComanda(prevComanda => ({
+                ...prevComanda,
+                items: prevComanda.items.filter(item => item.id !== itemParaRemover),
+                total: (parseFloat(prevComanda.total || 0) - parseFloat(itemRemovido.subtotal)).toFixed(2)
+            }));
+
+            setItemParaRemover(null);
+            showSuccess('Item removido da comanda!');
+
             const response = await fetch(
-                `http://localhost:8000/api/itens/${itemId}`,
+                `http://localhost:8000/api/itens/${itemParaRemover}`,
                 {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` },
@@ -169,27 +229,48 @@ const ComandaPage = () => {
 
             if (!response.ok) throw new Error('Erro ao remover item');
 
-            // Recarregar comanda
-            const comandaRes = await fetch(
-                `http://localhost:8000/api/mesas/${mesaId}/comanda`,
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            const comandaData = await comandaRes.json();
-            setComanda(comandaData.comanda);
+            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => setComanda(data.comanda))
+                .catch(err => console.error('Erro ao sincronizar:', err));
+
         } catch (err) {
             console.error('Erro:', err);
-            alert('Erro ao remover item');
+            showError('Erro ao remover item da comanda');
+
+            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => setComanda(data.comanda))
+                .catch(err => console.error('Erro ao recarregar:', err));
         }
     };
 
-    // Enviar para cozinha
+    const cancelarRemocao = () => {
+        setItemParaRemover(null);
+    };
+
     const handleEnviarCozinha = async () => {
         if (!comanda.items || comanda.items.length === 0) {
-            alert('Adicione itens à comanda antes de enviar');
+            showWarning('Adicione itens à comanda antes de enviar!');
             return;
         }
 
+        if (enviandoCozinha) return;
+
+        setEnviandoCozinha(true);
+
         try {
+            setComanda(prevComanda => ({
+                ...prevComanda,
+                status: 'enviada_cozinha'
+            }));
+
+            showSuccess('Comanda enviada para a cozinha!');
+
             const response = await fetch(
                 `http://localhost:8000/api/comandas/${comanda.id}/enviar-cozinha`,
                 {
@@ -200,20 +281,28 @@ const ComandaPage = () => {
 
             if (!response.ok) throw new Error('Erro ao enviar comanda');
 
-            const comandaRes = await fetch(
-                `http://localhost:8000/api/mesas/${mesaId}/comanda`,
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            const comandaData = await comandaRes.json();
-            setComanda(comandaData.comanda);
-            alert('Comanda enviada para a cozinha!');
+            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => setComanda(data.comanda))
+                .catch(err => console.error('Erro ao sincronizar:', err));
+
         } catch (err) {
             console.error('Erro:', err);
-            alert('Erro ao enviar comanda');
+            showError('Erro ao enviar comanda para a cozinha');
+
+            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => setComanda(data.comanda))
+                .catch(err => console.error('Erro ao recarregar:', err));
+        } finally {
+            setEnviandoCozinha(false);
         }
     };
 
-    // Fechar comanda
     const handleFecharComanda = async () => {
         try {
             const response = await fetch(
@@ -233,11 +322,39 @@ const ComandaPage = () => {
 
             if (!response.ok) throw new Error('Erro ao fechar comanda');
 
-            alert('Comanda fechada!');
-            navigate('/mesas');
+            showSuccess('Comanda fechada com sucesso!');
+
+            setTimeout(() => {
+                navigate('/mesas');
+            }, 1500);
         } catch (err) {
             console.error('Erro:', err);
-            alert('Erro ao fechar comanda');
+            showError('Erro ao fechar comanda');
+        }
+    };
+
+    // Renderização do modal selecionado
+    const renderModal = () => {
+        if (!modalOpen || !produtoSelecionado) return null;
+
+        const modalProps = {
+            produto: produtoSelecionado,
+            isOpen: modalOpen,
+            onClose: () => {
+                setModalOpen(false);
+                setProdutoSelecionado(null);
+                setTipoModal(null);
+            },
+            onConfirm: handleAdicionarItem,
+            loading: adicionandoItem
+        };
+
+        switch (tipoModal) {
+            case 'batata': return <ModalBatata {...modalProps} />;
+            case 'pastel': return <ModalPastel {...modalProps} />;
+            case 'bebida': return <ModalBebida {...modalProps} />;
+            case 'simples': return <ModalSimples {...modalProps} />;
+            default: return null;
         }
     };
 
@@ -269,61 +386,38 @@ const ComandaPage = () => {
             </div>
         );
     }
-    
+
     return (
         <div className="comanda-page">
-            {/* Renderizar modal apropriado */}
-            {tipoModal === 'batata' && (
-                <ModalBatata
-                    produto={produtoSelecionado}
-                    isOpen={modalOpen}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setProdutoSelecionado(null);
-                        setTipoModal(null);
-                    }}
-                    onConfirm={handleAdicionarItem}
-                />
+            {itemParaRemover && (
+                <div className="modal-overlay" onClick={cancelarRemocao}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+                        <div className="modal-header">
+                            <h2>Confirmar Remoção</h2>
+                            <button className="btn-close" onClick={cancelarRemocao}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            <p style={{ textAlign: 'center', fontSize: '1rem', margin: '1.5rem 0' }}>
+                                Deseja realmente remover este item da comanda?
+                            </p>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancelar" onClick={cancelarRemocao}>
+                                Cancelar
+                            </button>
+                            <button
+                                className="btn-confirmar"
+                                onClick={confirmarRemocao}
+                                style={{ backgroundColor: '#dc3545' }}
+                            >
+                                Remover
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
-            {tipoModal === 'pastel' && (
-                <ModalPastel
-                    produto={produtoSelecionado}
-                    isOpen={modalOpen}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setProdutoSelecionado(null);
-                        setTipoModal(null);
-                    }}
-                    onConfirm={handleAdicionarItem}
-                />
-            )}
-
-            {tipoModal === 'bebida' && (
-                <ModalBebida
-                    produto={produtoSelecionado}
-                    isOpen={modalOpen}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setProdutoSelecionado(null);
-                        setTipoModal(null);
-                    }}
-                    onConfirm={handleAdicionarItem}
-                />
-            )}
-
-            {tipoModal === 'simples' && (
-                <ModalSimples
-                    produto={produtoSelecionado}
-                    isOpen={modalOpen}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setProdutoSelecionado(null);
-                        setTipoModal(null);
-                    }}
-                    onConfirm={handleAdicionarItem}
-                />
-            )}
+            {renderModal()}
 
             <div className="comanda-header">
                 <button className="btn-voltar" onClick={() => navigate('/mesas')}>
@@ -336,34 +430,38 @@ const ComandaPage = () => {
             </div>
 
             <div className="comanda-container">
-                {/* Coluna esquerda - Categorias e Produtos */}
                 <div className="produtos-section">
                     <h2>Cardápio</h2>
 
-                    {categorias.map((categoria) => (
-                        <div key={categoria.slug} className="categoria-group">
-                            <h3 className="categoria-titulo">{categoria.nome}</h3>
-                            <div className="produtos-grid">
-                                {categoria.produtos.map((produto) => (
-                                    <button
-                                        key={produto.id}
-                                        className="produto-btn"
-                                        onClick={() => handleProdutoClick(produto)}
-                                    >
-                                        <div className="produto-info">
-                                            <div className="produto-nome">{produto.nome}</div>
-                                            <div className="produto-preco">
-                                                R$ {parseFloat(produto.preco).toFixed(2)}
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
+                    {loadingProdutos ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                            <Spinner size="medium" text="Carregando produtos..." />
                         </div>
-                    ))}
+                    ) : (
+                        categorias.map((categoria) => (
+                            <div key={categoria.slug} className="categoria-group">
+                                <h3 className="categoria-titulo">{categoria.nome}</h3>
+                                <div className="produtos-grid">
+                                    {categoria.produtos.map((produto) => (
+                                        <button
+                                            key={produto.id}
+                                            className="produto-btn"
+                                            onClick={() => handleProdutoClick(produto)}
+                                        >
+                                            <div className="produto-info">
+                                                <div className="produto-nome">{produto.nome}</div>
+                                                <div className="produto-preco">
+                                                    R$ {parseFloat(produto.preco).toFixed(2)}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
 
-                {/* Coluna direita - Comanda */}
                 <div className="comanda-section">
                     <h2>Comanda #{comanda.id}</h2>
 
@@ -413,7 +511,6 @@ const ComandaPage = () => {
                         </div>
                     )}
 
-                    {/* Total e Ações */}
                     <div className="comanda-footer">
                         <div className="total-section">
                             <div className="total-row">
@@ -427,8 +524,9 @@ const ComandaPage = () => {
                                 <button
                                     className="btn-enviar-cozinha"
                                     onClick={handleEnviarCozinha}
+                                    disabled={enviandoCozinha}
                                 >
-                                    🍳 Enviar para Cozinha
+                                    {enviandoCozinha ? '⏳ Enviando...' : '🍳 Enviar para Cozinha'}
                                 </button>
                             )}
 

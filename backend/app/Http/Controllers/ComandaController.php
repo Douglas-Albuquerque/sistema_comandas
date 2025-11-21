@@ -78,7 +78,7 @@ class ComandaController extends Controller
     public function addItem(Request $request, $comandaId)
     {
         $comanda = Comanda::findOrFail($comandaId);
-
+        
         $request->validate([
             'produto_id' => 'required|exists:produtos,id',
             'quantidade' => 'required|integer|min:1',
@@ -87,7 +87,7 @@ class ComandaController extends Controller
         ]);
 
         $produto = Produto::findOrFail($request->produto_id);
-
+        
         // Usar preço passado ou preço padrão do produto
         $precoUnitario = $request->preco_unitario ?? $produto->preco;
 
