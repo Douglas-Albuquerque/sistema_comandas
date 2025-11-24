@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
 import { ToastContext } from '../../../context/ToastContext';
@@ -18,8 +18,8 @@ const ComandaPage = () => {
 
     const [comanda, setComanda] = useState(null);
     const [produtos, setProdutos] = useState([]);
-    const [categorias, setCategorias] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingProdutos, setLoadingProdutos] = useState(true);
     const [error, setError] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [produtoSelecionado, setProdutoSelecionado] = useState(null);
@@ -34,78 +34,87 @@ const ComandaPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [comandaRes, produtosRes] = await Promise.all([
-                    fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }),
-                    fetch('http://localhost:8000/api/produtos', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    })
-                ]);
-
-                if (!comandaRes.ok || !produtosRes.ok) {
-                    throw new Error('Erro ao carregar dados');
+                const cachedProdutos = sessionStorage.getItem('produtos_cache');
+                if (cachedProdutos) {
+                    setProdutos(JSON.parse(cachedProdutos));
+                    setLoadingProdutos(false);
                 }
 
-                const comandaData = await comandaRes.json();
-                const produtosData = await produtosRes.json();
-
-                setComanda(comandaData.comanda);
-                setProdutos(produtosData.produtos);
-
-                const categoriaMap = {};
-                produtosData.produtos.forEach(produto => {
-                    if (!categoriaMap[produto.categoria.slug]) {
-                        categoriaMap[produto.categoria.slug] = {
-                            id: produto.categoria.id,
-                            nome: produto.categoria.nome,
-                            slug: produto.categoria.slug,
-                            produtos: []
-                        };
-                    }
-                    categoriaMap[produto.categoria.slug].produtos.push(produto);
+                const comandaPromise = fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                const ordemCategorias = [
-                    'entradas',
-                    'sanduiches-arabe',
-                    'sanduiches-bola',
-                    'sanduiches-artesanal',
-                    'pasteis',
-                    'bebidas'
-                ];
+                const produtosPromise = fetch('http://localhost:8000/api/produtos', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
 
-                const categoriasOrdenadas = ordemCategorias
-                    .map(slug => categoriaMap[slug])
-                    .filter(cat => cat !== undefined);
+                const comandaRes = await comandaPromise;
+                if (!comandaRes.ok) throw new Error('Erro ao carregar comanda');
 
-                setCategorias(categoriasOrdenadas);
+                const comandaData = await comandaRes.json();
+                setComanda(comandaData.comanda);
+                setLoading(false);
+
+                const produtosRes = await produtosPromise;
+                if (!produtosRes.ok) throw new Error('Erro ao carregar produtos');
+
+                const produtosData = await produtosRes.json();
+                setProdutos(produtosData.produtos);
+                setLoadingProdutos(false);
+
+                sessionStorage.setItem('produtos_cache', JSON.stringify(produtosData.produtos));
+
             } catch (err) {
                 console.error('Erro ao carregar dados:', err);
                 setError('Erro ao carregar comanda ou produtos');
                 showError('Erro ao carregar dados da comanda');
-            } finally {
                 setLoading(false);
+                setLoadingProdutos(false);
             }
         };
 
         fetchData();
     }, [mesaId, token]);
 
+    const categorias = useMemo(() => {
+        if (produtos.length === 0) return [];
+
+        const categoriaMap = {};
+        produtos.forEach(produto => {
+            if (!categoriaMap[produto.categoria.slug]) {
+                categoriaMap[produto.categoria.slug] = {
+                    id: produto.categoria.id,
+                    nome: produto.categoria.nome,
+                    slug: produto.categoria.slug,
+                    produtos: []
+                };
+            }
+            categoriaMap[produto.categoria.slug].produtos.push(produto);
+        });
+
+        const ordemCategorias = [
+            'entradas',
+            'sanduiches-arabe',
+            'sanduiches-bola',
+            'sanduiches-artesanal',
+            'pasteis',
+            'bebidas'
+        ];
+
+        return ordemCategorias
+            .map(slug => categoriaMap[slug])
+            .filter(cat => cat !== undefined);
+    }, [produtos]);
+
     const getModalType = (slug) => {
         switch (slug) {
-            case 'entradas':
-                return 'batata';
-            case 'pasteis':
-                return 'pastel';
-            case 'bebidas':
-                return 'bebida';
+            case 'entradas': return 'batata';
+            case 'pasteis': return 'pastel';
+            case 'bebidas': return 'bebida';
             case 'sanduiches-arabe':
             case 'sanduiches-bola':
-            case 'sanduiches-artesanal':
-                return 'simples';
-            default:
-                return 'simples';
+            case 'sanduiches-artesanal': return 'simples';
+            default: return 'simples';
         }
     };
 
@@ -248,16 +257,13 @@ const ComandaPage = () => {
         setEnviandoCozinha(true);
 
         try {
-            // Atualização otimista - atualiza o status imediatamente
             setComanda(prevComanda => ({
                 ...prevComanda,
                 status: 'enviada_cozinha'
             }));
 
-            // Mostra o toast de sucesso
             showSuccess('Comanda enviada para a cozinha!');
 
-            // Faz a requisição em background
             const response = await fetch(
                 `http://localhost:8000/api/comandas/${comanda.id}/enviar-cozinha`,
                 {
@@ -268,7 +274,6 @@ const ComandaPage = () => {
 
             if (!response.ok) throw new Error('Erro ao enviar comanda');
 
-            // Sincroniza em background para garantir consistência
             fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
@@ -280,7 +285,6 @@ const ComandaPage = () => {
             console.error('Erro:', err);
             showError('Erro ao enviar comanda para a cozinha');
 
-            // Se der erro, recarrega a comanda para restaurar o estado correto
             fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
@@ -322,6 +326,30 @@ const ComandaPage = () => {
         }
     };
 
+    const renderModal = () => {
+        if (!modalOpen || !produtoSelecionado) return null;
+
+        const modalProps = {
+            produto: produtoSelecionado,
+            isOpen: modalOpen,
+            onClose: () => {
+                setModalOpen(false);
+                setProdutoSelecionado(null);
+                setTipoModal(null);
+            },
+            onConfirm: handleAdicionarItem,
+            loading: adicionandoItem
+        };
+
+        switch (tipoModal) {
+            case 'batata': return <ModalBatata {...modalProps} />;
+            case 'pastel': return <ModalPastel {...modalProps} />;
+            case 'bebida': return <ModalBebida {...modalProps} />;
+            case 'simples': return <ModalSimples {...modalProps} />;
+            default: return null;
+        }
+    };
+
     if (loading) {
         return (
             <div className="comanda-page">
@@ -354,88 +382,32 @@ const ComandaPage = () => {
     return (
         <div className="comanda-page">
             {itemParaRemover && (
-                <div className="modal-overlay" onClick={cancelarRemocao}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-                        <div className="modal-header">
-                            <h2>Confirmar Remoção</h2>
-                            <button className="btn-close" onClick={cancelarRemocao}>×</button>
+                <div className="modal-overlay-confirm" onClick={cancelarRemocao}>
+                    <div className="modal-confirm" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-confirm-icon">
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                <path d="M24 4L44 40H4L24 4Z" fill="#F59E0B" />
+                                <path d="M22 18H26V28H22V18Z" fill="white" />
+                                <circle cx="24" cy="34" r="2" fill="white" />
+                            </svg>
                         </div>
-                        <div className="modal-body">
-                            <p style={{ textAlign: 'center', fontSize: '1rem', margin: '1.5rem 0' }}>
-                                Deseja realmente remover este item da comanda?
-                            </p>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn-cancelar" onClick={cancelarRemocao}>
+                        <h2 className="modal-confirm-title">Remover Item</h2>
+                        <p className="modal-confirm-message">
+                            Tem certeza que deseja remover este item da comanda?
+                        </p>
+                        <div className="modal-confirm-buttons">
+                            <button className="btn-confirm-cancelar" onClick={cancelarRemocao}>
                                 Cancelar
                             </button>
-                            <button
-                                className="btn-confirmar"
-                                onClick={confirmarRemocao}
-                                style={{ backgroundColor: '#dc3545' }}
-                            >
-                                Remover
+                            <button className="btn-confirm-remover" onClick={confirmarRemocao}>
+                                Sim
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {tipoModal === 'batata' && (
-                <ModalBatata
-                    produto={produtoSelecionado}
-                    isOpen={modalOpen}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setProdutoSelecionado(null);
-                        setTipoModal(null);
-                    }}
-                    onConfirm={handleAdicionarItem}
-                    loading={adicionandoItem}
-                />
-            )}
-
-            {tipoModal === 'pastel' && (
-                <ModalPastel
-                    produto={produtoSelecionado}
-                    isOpen={modalOpen}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setProdutoSelecionado(null);
-                        setTipoModal(null);
-                    }}
-                    onConfirm={handleAdicionarItem}
-                    loading={adicionandoItem}
-                />
-            )}
-
-            {tipoModal === 'bebida' && (
-                <ModalBebida
-                    produto={produtoSelecionado}
-                    isOpen={modalOpen}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setProdutoSelecionado(null);
-                        setTipoModal(null);
-                    }}
-                    onConfirm={handleAdicionarItem}
-                    loading={adicionandoItem}
-                />
-            )}
-
-            {tipoModal === 'simples' && (
-                <ModalSimples
-                    produto={produtoSelecionado}
-                    isOpen={modalOpen}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setProdutoSelecionado(null);
-                        setTipoModal(null);
-                    }}
-                    onConfirm={handleAdicionarItem}
-                    loading={adicionandoItem}
-                />
-            )}
+            {renderModal()}
 
             <div className="comanda-header">
                 <button className="btn-voltar" onClick={() => navigate('/mesas')}>
@@ -451,27 +423,33 @@ const ComandaPage = () => {
                 <div className="produtos-section">
                     <h2>Cardápio</h2>
 
-                    {categorias.map((categoria) => (
-                        <div key={categoria.slug} className="categoria-group">
-                            <h3 className="categoria-titulo">{categoria.nome}</h3>
-                            <div className="produtos-grid">
-                                {categoria.produtos.map((produto) => (
-                                    <button
-                                        key={produto.id}
-                                        className="produto-btn"
-                                        onClick={() => handleProdutoClick(produto)}
-                                    >
-                                        <div className="produto-info">
-                                            <div className="produto-nome">{produto.nome}</div>
-                                            <div className="produto-preco">
-                                                R$ {parseFloat(produto.preco).toFixed(2)}
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
+                    {loadingProdutos ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                            <Spinner size="medium" text="Carregando produtos..." />
                         </div>
-                    ))}
+                    ) : (
+                        categorias.map((categoria) => (
+                            <div key={categoria.slug} className="categoria-group">
+                                <h3 className="categoria-titulo">{categoria.nome}</h3>
+                                <div className="produtos-grid">
+                                    {categoria.produtos.map((produto) => (
+                                        <button
+                                            key={produto.id}
+                                            className="produto-btn"
+                                            onClick={() => handleProdutoClick(produto)}
+                                        >
+                                            <div className="produto-info">
+                                                <div className="produto-nome">{produto.nome}</div>
+                                                <div className="produto-preco">
+                                                    R$ {parseFloat(produto.preco).toFixed(2)}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
 
                 <div className="comanda-section">

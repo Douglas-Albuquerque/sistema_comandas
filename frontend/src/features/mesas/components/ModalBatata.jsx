@@ -36,9 +36,14 @@ const ModalBatata = ({ produto, isOpen, onClose, onConfirm, loading = false }) =
         }
 
         try {
+            // Monta a observação corretamente com o tamanho atual
+            const obsCompleta = observacoes 
+                ? `Tamanho: ${tamanhos[tamanho].label}\n${observacoes}`
+                : `Tamanho: ${tamanhos[tamanho].label}`;
+
             onConfirm({
                 quantidade: parseInt(quantidade),
-                observacoes: `Tamanho: ${tamanhos[tamanho].label}\n${observacoes}`,
+                observacoes: obsCompleta,
                 preco: precoAtual,
             });
 
@@ -57,7 +62,7 @@ const ModalBatata = ({ produto, isOpen, onClose, onConfirm, loading = false }) =
     };
 
     const handleClose = () => {
-        if (loading) return; // Impede fechar durante o loading
+        if (loading) return;
 
         // Resetar campos ao fechar
         setTamanho('pequeno');

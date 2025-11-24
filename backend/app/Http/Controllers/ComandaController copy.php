@@ -78,7 +78,7 @@ class ComandaController extends Controller
     public function addItem(Request $request, $comandaId)
     {
         $comanda = Comanda::findOrFail($comandaId);
-
+        
         $request->validate([
             'produto_id' => 'required|exists:produtos,id',
             'quantidade' => 'required|integer|min:1',
@@ -87,20 +87,33 @@ class ComandaController extends Controller
         ]);
 
         $produto = Produto::findOrFail($request->produto_id);
-
+        
         // Usar preço passado ou preço padrão do produto
         $precoUnitario = $request->preco_unitario ?? $produto->preco;
 
-        // SEMPRE criar novo item - NÃO agrupar
-        $item = ComandaItem::create([
-            'comanda_id' => $comandaId,
-            'produto_id' => $request->produto_id,
-            'quantidade' => $request->quantidade,
-            'preco_unitario' => $precoUnitario,
-            'subtotal' => $request->quantidade * $precoUnitario,
-            'observacoes' => $request->observacoes,
-            'status' => 'pendente',
-        ]);
+        // Verificar se o item já existe na comanda
+        $itemExistente = ComandaItem::where('comanda_id', $comandaId)
+            ->where('produto_id', $request->produto_id)
+            ->first();
+
+        if ($itemExistente) {
+            // Se existe, aumentar quantidade
+            $itemExistente->quantidade += $request->quantidade;
+            $itemExistente->subtotal = $itemExistente->quantidade * $precoUnitario;
+            $itemExistente->save();
+            $item = $itemExistente;
+        } else {
+            // Criar novo item
+            $item = ComandaItem::create([
+                'comanda_id' => $comandaId,
+                'produto_id' => $request->produto_id,
+                'quantidade' => $request->quantidade,
+                'preco_unitario' => $precoUnitario,
+                'subtotal' => $request->quantidade * $precoUnitario,
+                'observacoes' => $request->observacoes,
+                'status' => 'pendente',
+            ]);
+        }
 
         // Recalcular total da comanda
         $this->calcularTotalComanda($comanda);

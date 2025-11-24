@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\MesaController;
+use App\Http\Controllers\ComandaController;
 
 // Rotas públicas
 Route::post('/login', [LoginController::class, 'login']);
@@ -48,4 +49,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/mesas/{id}', [MesaController::class, 'update']);
         Route::delete('/mesas/{id}', [MesaController::class, 'destroy']);
     });
+
+    // Rotas de Comanda
+    Route::get('/mesas/{mesaId}/comanda', [ComandaController::class, 'show']);
+    Route::post('/mesas/{mesaId}/comanda', [ComandaController::class, 'store']);
+    Route::post('/comandas/{comandaId}/itens', [ComandaController::class, 'addItem']);
+    Route::put('/itens/{itemId}', [ComandaController::class, 'updateItem']);
+    Route::delete('/itens/{itemId}', [ComandaController::class, 'removeItem']);
+    Route::post('/comandas/{comandaId}/enviar-cozinha', [ComandaController::class, 'enviarCozinha']);
+    Route::post('/comandas/{comandaId}/fechar', [ComandaController::class, 'fechar']);
+    Route::post('/comandas/{comandaId}/paga', [ComandaController::class, 'marcarPaga']);
+    Route::get('/produtos', [ComandaController::class, 'produtos']);
 });

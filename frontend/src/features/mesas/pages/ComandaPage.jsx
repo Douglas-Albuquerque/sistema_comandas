@@ -31,18 +31,15 @@ const ComandaPage = () => {
     const mesa = location.state?.mesa;
     const token = localStorage.getItem('token');
 
-    // Cache de produtos no sessionStorage
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Tentar carregar produtos do cache primeiro
                 const cachedProdutos = sessionStorage.getItem('produtos_cache');
                 if (cachedProdutos) {
                     setProdutos(JSON.parse(cachedProdutos));
                     setLoadingProdutos(false);
                 }
 
-                // Carregar comanda e produtos em paralelo
                 const comandaPromise = fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -51,15 +48,13 @@ const ComandaPage = () => {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                // Carregar comanda primeiro para mostrar a página
                 const comandaRes = await comandaPromise;
                 if (!comandaRes.ok) throw new Error('Erro ao carregar comanda');
 
                 const comandaData = await comandaRes.json();
                 setComanda(comandaData.comanda);
-                setLoading(false); // Página já pode ser exibida
+                setLoading(false);
 
-                // Produtos carregam em background
                 const produtosRes = await produtosPromise;
                 if (!produtosRes.ok) throw new Error('Erro ao carregar produtos');
 
@@ -67,7 +62,6 @@ const ComandaPage = () => {
                 setProdutos(produtosData.produtos);
                 setLoadingProdutos(false);
 
-                // Cachear produtos para próximas visitas
                 sessionStorage.setItem('produtos_cache', JSON.stringify(produtosData.produtos));
 
             } catch (err) {
@@ -82,7 +76,6 @@ const ComandaPage = () => {
         fetchData();
     }, [mesaId, token]);
 
-    // Processar categorias com useMemo para evitar reprocessamento
     const categorias = useMemo(() => {
         if (produtos.length === 0) return [];
 
@@ -333,7 +326,6 @@ const ComandaPage = () => {
         }
     };
 
-    // Renderização do modal selecionado
     const renderModal = () => {
         if (!modalOpen || !produtoSelecionado) return null;
 
@@ -390,27 +382,25 @@ const ComandaPage = () => {
     return (
         <div className="comanda-page">
             {itemParaRemover && (
-                <div className="modal-overlay" onClick={cancelarRemocao}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-                        <div className="modal-header">
-                            <h2>Confirmar Remoção</h2>
-                            <button className="btn-close" onClick={cancelarRemocao}>×</button>
+                <div className="modal-overlay-confirm" onClick={cancelarRemocao}>
+                    <div className="modal-confirm" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-confirm-icon">
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                <path d="M24 4L44 40H4L24 4Z" fill="#F59E0B" />
+                                <path d="M22 18H26V28H22V18Z" fill="white" />
+                                <circle cx="24" cy="34" r="2" fill="white" />
+                            </svg>
                         </div>
-                        <div className="modal-body">
-                            <p style={{ textAlign: 'center', fontSize: '1rem', margin: '1.5rem 0' }}>
-                                Deseja realmente remover este item da comanda?
-                            </p>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn-cancelar" onClick={cancelarRemocao}>
+                        <h2 className="modal-confirm-title">Remover Item</h2>
+                        <p className="modal-confirm-message">
+                            Tem certeza que deseja remover este item da comanda?
+                        </p>
+                        <div className="modal-confirm-buttons">
+                            <button className="btn-confirm-cancelar" onClick={cancelarRemocao}>
                                 Cancelar
                             </button>
-                            <button
-                                className="btn-confirmar"
-                                onClick={confirmarRemocao}
-                                style={{ backgroundColor: '#dc3545' }}
-                            >
-                                Remover
+                            <button className="btn-confirm-remover" onClick={confirmarRemocao}>
+                                Sim
                             </button>
                         </div>
                     </div>
@@ -463,7 +453,7 @@ const ComandaPage = () => {
                 </div>
 
                 <div className="comanda-section">
-                    <h2>Comanda #{comanda.id}</h2>
+                    <h2>Comanda</h2>
 
                     {comanda.items && comanda.items.length > 0 ? (
                         <div className="itens-lista">
