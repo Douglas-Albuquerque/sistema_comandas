@@ -1,14 +1,55 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { ToastContext } from '../../../context/ToastContext';
 import './ModalSimples.css';
 
 const ModalSimples = ({ produto, isOpen, onClose, onConfirm, loading = false }) => {
     const [quantidade, setQuantidade] = useState(1);
     const [observacoes, setObservacoes] = useState('');
+    const [adicionais, setAdicionais] = useState([]);
+    const [adicionaisSelecionados, setAdicionaisSelecionados] = useState([]);
 
     const { showSuccess, showError, showWarning } = useContext(ToastContext);
 
     const precoUnitario = parseFloat(produto.preco) || 0;
+
+    // Buscar adicionais da API
+    useEffect(() => {
+        const fetchAdicionais = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:8000/api/adicionais', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setAdicionais(data.adicionais || []);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar adicionais:', error);
+            }
+        };
+
+        if (isOpen) {
+            fetchAdicionais();
+        }
+    }, [isOpen]);
+
+    // Calcular preço com adicionais
+    const precoAdicionais = adicionaisSelecionados.reduce((total, id) => {
+        const adicional = adicionais.find(a => a.id === id);
+        return total + (adicional ? parseFloat(adicional.preco) : 0);
+    }, 0);
+
+    const precoTotal = (precoUnitario + precoAdicionais) * quantidade;
+
+    const handleToggleAdicional = (id) => {
+        setAdicionaisSelecionados(prev =>
+            prev.includes(id)
+                ? prev.filter(item => item !== id)
+                : [...prev, id]
+        );
+    };
 
     const handleConfirm = () => {
         if (quantidade < 1) {
@@ -22,15 +63,29 @@ const ModalSimples = ({ produto, isOpen, onClose, onConfirm, loading = false }) 
         }
 
         try {
+            // Montar descrição dos adicionais
+            const adicionaisTexto = adicionaisSelecionados.length > 0
+                ? '\nAdicionais: ' + adicionaisSelecionados
+                    .map(id => adicionais.find(a => a.id === id)?.nome)
+                    .filter(Boolean)
+                    .join(', ')
+                : '';
+
+            const obsCompleta = observacoes
+                ? `${adicionaisTexto}\n${observacoes}`
+                : adicionaisTexto;
+
             onConfirm({
                 quantidade: parseInt(quantidade),
-                observacoes,
+                observacoes: obsCompleta,
+                preco: precoUnitario + precoAdicionais, // Preço unitário com adicionais
             });
 
             showSuccess(`${produto.nome} adicionado com sucesso!`);
 
             setQuantidade(1);
             setObservacoes('');
+            setAdicionaisSelecionados([]);
 
         } catch (error) {
             showError('Erro ao adicionar produto. Tente novamente!');
@@ -43,6 +98,7 @@ const ModalSimples = ({ produto, isOpen, onClose, onConfirm, loading = false }) 
 
         setQuantidade(1);
         setObservacoes('');
+        setAdicionaisSelecionados([]);
         onClose();
     };
 
@@ -83,6 +139,29 @@ const ModalSimples = ({ produto, isOpen, onClose, onConfirm, loading = false }) 
                         <span className="label">Preço Unitário:</span>
                         <span className="preco">R$ {precoUnitario.toFixed(2)}</span>
                     </div>
+
+                    {/* ADICIONAIS */}
+                    {adicionais.length > 0 && (
+                        <div className="adicionais-section">
+                            <label>Adicionais</label>
+                            <div className="adicionais-list">
+                                {adicionais.map((adicional) => (
+                                    <label key={adicional.id} className="adicional-item">
+                                        <input
+                                            type="checkbox"
+                                            checked={adicionaisSelecionados.includes(adicional.id)}
+                                            onChange={() => handleToggleAdicional(adicional.id)}
+                                            disabled={loading}
+                                        />
+                                        <span className="adicional-nome">{adicional.nome}</span>
+                                        <span className="adicional-preco">
+                                            +R$ {parseFloat(adicional.preco).toFixed(2)}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label>Quantidade *</label>
@@ -127,7 +206,7 @@ const ModalSimples = ({ produto, isOpen, onClose, onConfirm, loading = false }) 
 
                     <div className="total-preview">
                         <span>Total a pagar:</span>
-                        <span className="total">R$ {(precoUnitario * quantidade).toFixed(2)}</span>
+                        <span className="total">R$ {precoTotal.toFixed(2)}</span>
                     </div>
                 </div>
 

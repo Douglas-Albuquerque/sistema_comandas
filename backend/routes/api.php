@@ -50,6 +50,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/mesas/{id}', [MesaController::class, 'destroy']);
     });
 
+    // Adicionais
+    Route::get('/adicionais', [ComandaController::class, 'adicionais']);
+
     // Rotas de Comanda
     Route::get('/mesas/{mesaId}/comanda', [ComandaController::class, 'show']);
     Route::post('/mesas/{mesaId}/comanda', [ComandaController::class, 'store']);

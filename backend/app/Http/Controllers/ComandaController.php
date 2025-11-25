@@ -245,7 +245,20 @@ class ComandaController extends Controller
             'produtos' => $produtos,
         ], 200);
     }
+    
+    public function adicionais()
+    {
+        $adicionais = Produto::where('disponivel', true)
+            ->whereHas('categoria', function ($query) {
+                $query->where('slug', 'adicionais');
+            })
+            ->with('categoria')
+            ->get();
 
+        return response()->json([
+            'adicionais' => $adicionais,
+        ], 200);
+    }
     /**
      * Função auxiliar para calcular total da comanda
      */

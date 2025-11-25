@@ -17,6 +17,7 @@ class ProdutoSeeder extends Seeder
         $artesanais = Categoria::where('slug', 'sanduiches-artesanal')->first();
         $pasteis = Categoria::where('slug', 'pasteis')->first();
         $bebidas = Categoria::where('slug', 'bebidas')->first();
+        $adicionais = Categoria::where('slug', 'adicionais')->first();
 
         $produtos = [
             // Entradas
@@ -148,6 +149,42 @@ class ProdutoSeeder extends Seeder
                 'descricao' => 'Água (tamanho variável)',
                 'preco' => 3.00,
                 'disponivel' => true,
+            ],
+            // ADICIONAIS (NOVOS)
+            [
+                'categoria_id' => $adicionais->id,
+                'nome' => 'Bacon Extra',
+                'descricao' => 'Adicional de bacon crocante',
+                'preco' => 3.00,
+                'disponivel' => true
+            ],
+            [
+                'categoria_id' => $adicionais->id, 
+                'nome' => 'Carne Extra', 
+                'descricao' => 'Adicional de hambúrguer', 
+                'preco' => 3.00, 
+                'disponivel' => true
+            ],
+            [
+                'categoria_id' => $adicionais->id, 
+                'nome' => 'Queijo Extra', 
+                'descricao' => 'Adicional de queijo', 
+                'preco' => 3.00, 
+                'disponivel' => true
+            ],
+            [
+                'categoria_id' => $adicionais->id, 
+                'nome' => 'Ovo', 
+                'descricao' => 'Adicional de ovo frito', 
+                'preco' => 3.00, 
+                'disponivel' => true
+            ],
+            [
+                'categoria_id' => $adicionais->id, 
+                'nome' => 'Cebola Caramelizada', 
+                'descricao' => 'Adicional de cebola caramelizada', 
+                'preco' => 3.00, 
+                'disponivel' => true
             ],
         ];
 

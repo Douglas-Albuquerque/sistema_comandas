@@ -14,7 +14,7 @@ const MesasPage = () => {
 
   useEffect(() => {
     // Busca mesas da API com URL completa do backend
-    fetch(`${API_URL}/api/mesas`)
+    fetch(`${API_URL}/mesas`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`Erro HTTP: ${res.status}`);

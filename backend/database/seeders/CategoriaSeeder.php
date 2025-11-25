@@ -46,6 +46,11 @@ class CategoriaSeeder extends Seeder
                 'descricao' => 'Bebidas variadas',
                 'ativo' => true,
             ],
+            [
+                'nome' => 'Adicionais',
+                'slug' => 'adicionais',
+                'descricao' => 'Adicionais para sanduíches',
+            ],
         ];
 
         foreach ($categorias as $categoria) {
