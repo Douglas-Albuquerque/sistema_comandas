@@ -7,6 +7,7 @@ import ModalBatata from '../components/ModalBatata';
 import ModalPastel from '../components/ModalPastel';
 import ModalBebida from '../components/ModalBebidas';
 import ModalSimples from '../components/ModalSimples';
+import API_URL from '../../../config/api.js'
 import './ComandaPage.css';
 
 const ComandaPage = () => {
@@ -40,11 +41,11 @@ const ComandaPage = () => {
                     setLoadingProdutos(false);
                 }
 
-                const comandaPromise = fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+                const comandaPromise = fetch(`${API_URL}/mesas/${mesaId}/comanda`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                const produtosPromise = fetch('http://localhost:8000/api/produtos', {
+                const produtosPromise = fetch(`${API_URL}/produtos`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -130,7 +131,7 @@ const ComandaPage = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:8000/api/comandas/${comanda.id}/itens`,
+                `${API_URL}/comandas/${comanda.id}/itens`,
                 {
                     method: 'POST',
                     headers: {
@@ -172,7 +173,7 @@ const ComandaPage = () => {
             setProdutoSelecionado(null);
             setTipoModal(null);
 
-            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+            fetch(`${API_URL}/mesas/${mesaId}/comanda`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => res.json())
@@ -213,7 +214,7 @@ const ComandaPage = () => {
             showSuccess('Item removido da comanda!');
 
             const response = await fetch(
-                `http://localhost:8000/api/itens/${itemParaRemover}`,
+                `${API_URL}/itens/${itemParaRemover}`,
                 {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` },
@@ -222,7 +223,7 @@ const ComandaPage = () => {
 
             if (!response.ok) throw new Error('Erro ao remover item');
 
-            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+            fetch(`${API_URL}/mesas/${mesaId}/comanda`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => res.json())
@@ -233,7 +234,7 @@ const ComandaPage = () => {
             console.error('Erro:', err);
             showError('Erro ao remover item da comanda');
 
-            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+            fetch(`${API_URL}/mesas/${mesaId}/comanda`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => res.json())
@@ -265,7 +266,7 @@ const ComandaPage = () => {
             showSuccess('Comanda enviada para a cozinha!');
 
             const response = await fetch(
-                `http://localhost:8000/api/comandas/${comanda.id}/enviar-cozinha`,
+                `${API_URL}/comandas/${comanda.id}/enviar-cozinha`,
                 {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
@@ -274,7 +275,7 @@ const ComandaPage = () => {
 
             if (!response.ok) throw new Error('Erro ao enviar comanda');
 
-            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+            fetch(`${API_URL}/mesas/${mesaId}/comanda`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => res.json())
@@ -285,7 +286,7 @@ const ComandaPage = () => {
             console.error('Erro:', err);
             showError('Erro ao enviar comanda para a cozinha');
 
-            fetch(`http://localhost:8000/api/mesas/${mesaId}/comanda`, {
+            fetch(`${API_URL}/mesas/${mesaId}/comanda`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => res.json())
@@ -299,7 +300,7 @@ const ComandaPage = () => {
     const handleFecharComanda = async () => {
         try {
             const response = await fetch(
-                `http://localhost:8000/api/comandas/${comanda.id}/fechar`,
+                `${API_URL}/comandas/${comanda.id}/fechar`,
                 {
                     method: 'POST',
                     headers: {

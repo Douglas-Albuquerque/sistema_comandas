@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
 import Spinner from '../../../components/common/Spinner/Spinner.jsx';
+import API_URL from '../../../config/api'
 import './MesasPage.css';
 
 const MesasPage = () => {
@@ -13,7 +14,7 @@ const MesasPage = () => {
 
   useEffect(() => {
     // Busca mesas da API com URL completa do backend
-    fetch('http://localhost:8000/api/mesas')
+    fetch(`${API_URL}/api/mesas`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`Erro HTTP: ${res.status}`);
